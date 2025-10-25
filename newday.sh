@@ -6,10 +6,10 @@ MONTH_NUM=$(date +%m)
 MONTH_NAME=$(date +%B)
 DAY=$(date +%d)
 WEEK_NUM=$(( (10#$(date +%d) - 1) / 7 + 1 ))  # Week number within the month (1–4)
-DATE_FILE="$YEAR-$MONTH_NUM-$DAY.md"
+DATE_FILE="$DAY-$MONTH_NAME.md"
 
 # Folder paths
-BASE_DIR="$YEAR/${MONTH_NUM}-${MONTH_NAME}/Week-0${WEEK_NUM}"
+BASE_DIR="$YEAR/${MONTH_NAME}/Week-0${WEEK_NUM}"
 MEETING_DIR="$YEAR/${MONTH_NUM}-${MONTH_NAME}/meetings"
 
 # Create directories
