@@ -1,6 +1,6 @@
 # 📘 Research Journal
 
-This repository is a structured logbook for tracking daily research progress, weekly summaries, and monthly meeting notes.  
+This repository is a structured logbook for tracking daily research progress, weekly summaries, and meeting notes.  
 ---
 
 ## 🗂️ Folder Structure
