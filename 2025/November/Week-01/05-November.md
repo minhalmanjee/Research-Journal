@@ -1,5 +1,5 @@
 # Daily Log - 05-November.md
-# Discussion for practical application, literature review sections and application - rescheduled to Friday
+# Discussion for practical application, literature review sections and gap analysis - rescheduled to Friday
 # 3.9 Per-Object Semantics
 
 Idea:
