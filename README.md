@@ -6,3 +6,4 @@ This repository is a structured logbook for tracking daily research progress, we
 ## 🗂️ Folder Structure
 
 Each year is organized into months, weeks, and meeting folders.
+ZfDS@US296HhfWH
