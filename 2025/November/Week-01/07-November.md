@@ -1,100 +1,54 @@
 # Model Summary
 
 # Consistency Models — Categorized Summary (Viotti & Vukolić 2016)
+| Category                             | Model Name                             | Definition                                                                         | Example / Implementation                                                                             | Equation / Formalism                                |
+| ------------------------------------ | -------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Strong / Classical**               | Linearizability                        | All operations appear instantaneous in real-time order.                            | Bank account transactions applied atomically.                                                        | SINGLEORDER ∧ REALTIME ∧ RVAL(F)                    |
+|                                      | Sequential Consistency                 | All processes see same total order of operations; process order respected.         | Multi-threaded counters with consistent updates.                                                     | SINGLEORDER ∧ PRAM ∧ RVAL(F)                        |
+|                                      | PRAM                                   | Writes from each process are seen in order by all processes.                       | Each client sees its own updates in order.                                                           | vis ⊇ so                                            |
+|                                      | Quiescent Consistency                  | System appears sequential if updates stop.                                         | Offline document editing stabilizes to consistent order.                                             | —                                                   |
+| **Eventual / Weak**                  | Eventual Consistency                   | Updates eventually visible; temporary divergence allowed.                          | Distributed database replicas sync over time.                                                        | EVENTUALVISIBILITY ∧ NOCIRCULARCAUSALITY ∧ RVAL(F)  |
+|                                      | Causal+ Consistency                    | Causal consistency + eventual convergence.                                         | Collaborative editing: causally dependent operations applied in order; independent ones may diverge. | hb ⊆ vis ∧ hb ⊆ ar                                  |
+|                                      | Real-Time Causal                       | Causal consistency + real-time ordering.                                           | Chat messages appear in causal and real-time order.                                                  | hb ⊆ vis ∧ hb ⊆ ar + real-time                      |
+| **Timed / Bounded**                  | Delta Consistency                      | Write visible to all within Δ time.                                                | Read may see stale value for Δ seconds.                                                              | vis delay ≤ Δ                                       |
+|                                      | Timed Consistency                      | Write at t visible to all by t+τ.                                                  | Reads after t+τ see latest write.                                                                    | read_time ≥ write_time + τ                          |
+|                                      | Bounded Staleness                      | Periodic updates limit staleness.                                                  | Cloud key-value store periodically syncs.                                                            | —                                                   |
+|                                      | Timed Causal Consistency               | Combines causal + Δ-visibility.                                                    | Updates seen in causal order within Δ.                                                               | hb ⊆ vis ∧ vis delay ≤ Δ                            |
+|                                      | Timed Serial Consistency / Δ-Atomicity | Global order with Δ delay allowed.                                                 | Δ=0 → linearizable; Δ>0 → bounded lag.                                                               | SINGLEORDER ∧ Δ-time bound ∧ RVAL(F)                |
+|                                      | K-Linearizability                      | Reads may return last K versions.                                                  | Versioned storage system.                                                                            | k-version bound                                     |
+|                                      | Probabilistic Bounded Staleness (PBS)  | Most reads are fresh; bounded probability for staleness.                           | Web cache with probabilistic freshness.                                                              | PBS k-staleness / t-visibility / k,t-staleness      |
+| **Session Guarantees**               | Monotonic Reads (MR)                   | Never read older version after seeing newer.                                       | Client caching of messages.                                                                          | —                                                   |
+|                                      | Read Your Writes (RYW)                 | Client always sees its writes.                                                     | User sees own post immediately.                                                                      | —                                                   |
+|                                      | Monotonic Writes (MW)                  | Writes from same client applied in order.                                          | Sequential updates in shared document.                                                               | —                                                   |
+|                                      | Writes Follow Reads (WFR)              | Write happens after all previously read writes.                                    | Commenting after reading other’s updates.                                                            | —                                                   |
+| **Fork-Based / Byzantine**           | Fork-Linearizability                   | Strongest; once forked, clients never rejoin.                                      | Untrusted cloud storage.                                                                             | PRAM ∧ REALTIME ∧ NOJOIN ∧ RVAL(F)                  |
+|                                      | Fork* Consistency                      | Relaxed fork-linearizability; at most one join allowed.                            | Distributed ledger with limited reconciliation.                                                      | READYOURWRITES ∧ REALTIME ∧ ATMOSTONEJOIN ∧ RVAL(F) |
+|                                      | Fork-Sequential                        | Weakest; once forked, no rejoin; sequential per client.                            | Multi-client versioned system.                                                                       | PRAM ∧ NOJOIN ∧ RVAL(F)                             |
+|                                      | Fork-Join Causal (FJC)                 | Weaker causal consistency; correct processes see causal ops; allows history merge. | Byzantine-tolerant key-value store.                                                                  | causal ops ⊆ vis (among correct processes)          |
+|                                      | Bounded FJC (BFJC)                     | Limits number of forks per faulty node.                                            | Multi-client replicated store.                                                                       | fork limit K                                        |
+|                                      | Weak Fork-Linearizability              | Relaxed fork-linearizability; limited real-time order + at most one join.          | Fault-tolerant system with higher liveness.                                                          | PRAM ∧ K-REALTIME(2) ∧ ATMOSTONEJOIN ∧ RVAL(F)      |
+| **Composite / Tunable**              | Hybrid Consistency                     | Mix strong & weak operations; order of strong/weak preserved per process.          | Important writes strong; background updates weak.                                                    | —                                                   |
+|                                      | Eventual Serializability               | Partial order eventually stabilizes to total order.                                | Shared calendar sync.                                                                                | —                                                   |
+|                                      | Eventual Linearizability               | Strong ops linearized immediately; weak ops eventually linear.                     | Shopping cart system.                                                                                | —                                                   |
+|                                      | RedBlue / QoS Tunable                  | Red=strong consistency, Blue=eventual.                                             | Social media: payments red, likes blue.                                                              | —                                                   |
+|                                      | Continuous Consistency                 | Metrics: staleness, order error, numerical error.                                  | Collaborative editor: bounded divergence.                                                            | θ, σ, ν (time, order, value divergence)             |
+|                                      | Vector-Field Consistency               | Per-object [θ,σ,ν] bounds.                                                         | Multiplayer game; nearby objects stricter consistency.                                               | [θ, σ, ν]                                           |
+|                                      | Tunable Cloud Consistency              | Dynamic per-client consistency.                                                    | Strong for bank, eventual for recommendations.                                                       | —                                                   |
+|                                      | Explicit Consistency                   | Eventual + app-specific invariants.                                                | Bank balance ≥0 despite async updates.                                                               | —                                                   |
+|                                      | Consistency Anchoring / Hardening      | Weak data + metadata in linearizable store.                                        | Distributed file service.                                                                            | metadata linearizable; data eventually consistent   |
+| **Per-Object / Keyed**               | Slow Memory                            | Per-object PRAM; writes per object seen in order.                                  | Profile updates; independent object writes reorderable.                                              | per-object PRAM                                     |
+|                                      | Per-Object Single Order                | Per-object total order; each object has own timeline.                              | Key-value store; x=1→x=2, per-object timeline.                                                       | per-object SINGLEORDER                              |
+|                                      | Per-Object Sequential                  | Single order + per-object PRAM + RVAL(F).                                          | Document paragraphs; independent timelines.                                                          | per-object SINGLEORDER ∧ PEROBJECTPRAM ∧ RVAL(F)    |
+|                                      | Processor Consistency                  | PRAM + per-object single order.                                                    | CPU cache memory consistency.                                                                        | per-object SINGLEORDER ∧ PRAM                       |
+|                                      | Per-Object Linearizability             | Linearizability per object.                                                        | Bank account atomic updates; accounts independent.                                                   | per-object LINEARIZABILITY                          |
+|                                      | Per-Object Causal                      | Causal consistency per object; independent objects.                                | Blog edits: title before content; other posts independent.                                           | per-object hb ⊆ vis                                 |
+| **Multiprocessor / Synchronization** | Weak Ordering                          | Only synchronization ops strongly ordered; normal reads/writes can reorder.        | Threads share results via acquire/release.                                                           | —                                                   |
+|                                      | Release Consistency                    | Synchronization ops labeled strong; others weak.                                   | Thread releases lock, acquire sees updates.                                                          | —                                                   |
+|                                      | Lazy Release Consistency               | Delay updates propagation until acquire.                                           | Optimized threaded memory.                                                                           | —                                                   |
+|                                      | Entry Consistency                      | Each object linked to sync variable; improves parallelism.                         | Lock per shared variable.                                                                            | —                                                   |
+|                                      | Scope Consistency                      | Auto-infer scopes from sync ops; no manual binding.                                | Scoped shared memory access.                                                                         | —                                                   |
+|                                      | Location Consistency                   | Partial orders; writes to same variable may be seen in different orders.           | Fields of shared structure updated independently.                                                    | —                                                   |
 
----
-
-##  1. Classic Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|------------------------------|---------------------------------|
-| **Linearizability** | Operations appear instantaneous in real-time order. | A read that starts after a write finishes must return that written value. It is the strongest form of consistency. | `LINEARIZABILITY(F) = SINGLEORDER ∧ REALTIME ∧ RVAL(F)` |
-| **Sequential Consistency** | All operations appear in a single global sequence that respects process order but not necessarily real-time. | Two clients see operations in the same order even if timestamps differ. | `SEQUENTIALCONSISTENCY(F) = SINGLEORDER ∧ PRAM ∧ RVAL(F)` |
-| **PRAM Consistency** | Writes by each process are seen in the same order by all others. | Everyone observes Alice’s writes in order but Bob’s writes may interleave differently. | `so ⊆ vis` |
-| **Processor Consistency** | PRAM + per-object single order. | Writes to each variable appear in a consistent order, but no global total order is required. | `PEROBJECTSINGLEORDER ∧ PRAM ∧ RVAL(F)` |
-| **Safe Consistency** | Reads may return the last completed write or any value during concurrent writes. | If a read overlaps a write, it may return old or new data. | `SINGLEORDER ∧ REALTIMEWRITES ∧ SEQRVAL(F)` |
-| **Regular Consistency** | Reads return last completed write unless concurrent writes exist. | A read after completion of one write always returns that write’s value. | `SINGLEORDER ∧ REALTIMEWRITES ∧ RVAL(F)` |
-| **Quiescent Consistency** | When the system becomes idle, history appears sequentially consistent. | When no operations are in flight, all replicas show the same consistent state. | — |
-
----
-
-##  2. Causal and Session Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Causal Consistency** | Preserves happens-before order across processes. | If Alice posts and Bob replies, everyone sees the post before the reply. | `hb ⊆ vis, hb ⊆ ar` |
-| **Causal+ Consistency** | Causal + convergence (identical final state). | Servers may apply updates in different orders but end with same result. | `CAUSALITY(F) ∧ STRONGCONVERGENCE` |
-| **Real-Time Causal** | Adds real-time order to causal consistency. | Non-overlapping updates respect actual wall-clock order. | `CAUSALITY(F) ∧ REALTIME` |
-| **Session (Monotonic Reads/Writes, RYW, WFR)** | Guarantees consistent client session view. | Each client sees its own writes and monotonic reads, even if replicas lag. | `MONOTONICREADS`, `READYOURWRITES`, `MONOTONICWRITES`, `WRITESFOLLOWREADS` |
-| **Eventual Consistency** | All replicas converge if no new updates occur. | Short-term divergence is allowed; replicas synchronize eventually. | `EVENTUALVISIBILITY ∧ NOCIRCULARCAUSALITY ∧ RVAL(F)` |
-| **Strong Eventual Consistency (SEC)** | Eventual consistency + strong convergence. | Used in CRDTs where concurrent updates deterministically merge. | `EVENTUALCONSISTENCY(F) ∧ STRONGCONVERGENCE` |
-
----
-
-##  3. Timed / Bounded-Staleness Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Timed Consistency (Δ-Consistency)** | Each write visible within Δ time. | A database guarantees new values visible within 3 seconds. | `∀a,b. a.rtime + Δ ≤ b.stime ⇒ a vis → b` |
-| **Timed Causal Consistency** | Combines causal and Δ-visibility. | A causal chain propagates within a fixed delay. | `CAUSALITY(F) ∧ TIMEDVISIBILITY()` |
-| **Timed Linearizability** | Linearizability with time bound δ. | Reads reflect writes within δ ms, maintaining real-time order. | `SINGLEORDER ∧ TIMEDVISIBILITY() ∧ RVAL(F)` |
-| **Δ-Atomicity (Timed Serial)** | Reads can return data up to Δ old. | A sensor may show a reading up to 1 second stale. | — |
-| **Bounded Staleness / K-Linearizability** | Reads are within K versions or Δ time of latest. | A system ensures users see one of the two newest updates. | `K-LINEARIZABLE(F,K)` |
-| **PBS (Probabilistic Bounded Staleness)** | Reads are fresh within Δ with probability p. | 99% of reads show a value ≤ 3 versions old. | — |
-
----
-
-##  4. Fork-Based Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Fork-Linearizability** | Misbehaving server causes clients to fork permanently. | If server hides Alice’s write from Bob, they never see each other’s later ops. | `PRAM ∧ REALTIME ∧ NOJOIN ∧ RVAL(F)` |
-| **Fork\*** | Allows at most one merge after divergence. | Clients may temporarily rejoin views once. | `READYOURWRITES ∧ REALTIME ∧ ATMOSTONEJOIN ∧ RVAL(F)` |
-| **Fork-Sequential Consistency** | Each client sees a sequential history; forks are permanent. | Diverging clients maintain internal consistency. | `PRAM ∧ NOJOIN ∧ RVAL(F)` |
-| **Weak Fork-Linearizability** | Fork\* with relaxed real-time (K-REALTIME(2)). | One merge allowed and limited timing constraint. | `PRAM ∧ K-REALTIME(2) ∧ ATMOSTONEJOIN ∧ RVAL(F)` |
-| **Fork-Join Causal (FJC)** | Fork consistency under causal ordering. | Byzantine-tolerant model allowing forked yet causally safe views. | — |
-| **Bounded Fork-Join Causal** | Limits fork depth to bounded divergence. | Detects and bounds malicious forks. | — |
-
----
-
-##  5. Hybrid / Eventual Variants
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Hybrid Consistency** | Combines strong (synchronous) and weak (async) ops. | Banking uses strong for transfers, weak for logging. | — |
-| **Eventual Serializability** | Operations converge to a serial order over time. | Temporary divergence resolves to one consistent history. | — |
-| **Eventual Linearizability** | Linearizable view emerges eventually. | Clients may see temporary reordering but settle to real-time order. | — |
-| **RedBlue / QoS Consistency** | Tunable mix of strong (“red”) and weak (“blue”) ops. | Payment = red, “like” = blue. | — |
-| **Continuous / Vector-Field Consistency** | Quantifies deviation via time/order/value metrics. | Game objects update within thresholds [θ, σ, ν]. | — |
-| **Tunable Consistency** | Runtime-adjustable per operation. | App uses strong for auth, weak for analytics. | — |
-
----
-
-## 6. Per-Object Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Per-Object PRAM** | PRAM applied per object. | Each key’s writes by a process appear in order. | `(so ∩ ob) ⊆ vis` |
-| **Per-Object Single Order** | Agreement on write order per object. | All replicas agree on order of updates to same item. | `ar ∩ ob = vis ∩ ob \ (H⊥ × H)` |
-| **Per-Object Sequential** | Per-object single order + PRAM. | Each object behaves sequentially consistent. | `PEROBJECTSINGLEORDER ∧ PEROBJECTPRAM ∧ RVAL(F)` |
-| **Per-Object Causal** | Causal consistency per object. | Post title precedes content update on all replicas. | — |
-| **Per-Object Linearizability** | Linearizability applied independently per object. | Each account balance updated atomically, separate from others. | — |
-
----
-
-## 7. Synchronized (Memory) Models
-
-| **Model** | **Definition** | **Example** | **Formal Relation / Predicate** |
-|------------|----------------|--------------|---------------------------------|
-| **Weak Ordering** | Only synchronized accesses are ordered. | Threads reorder independent writes but respect locks. | — |
-| **Release Consistency** | Writes become visible at synchronization release. | Data written before a release is visible after acquire. | — |
-| **Entry / Scope Consistency** | Synchronization defines variable scope visibility. | Variables bound to specific locks propagate updates. | — |
-
----
-
-> 📖 **References:**  
-> Viotti, P., & Vukolić, M. (2016). *Consistency in Non-Transactional Distributed Storage Systems.* ACM Computing Surveys 49 (1).  
-> All formal predicates from Tables I–II and Section 3 (Preliminaries to Synchronized Models).
 
 
 
