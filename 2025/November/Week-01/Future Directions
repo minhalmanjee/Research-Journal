@@ -1,0 +1,19 @@
+# Future Directions
+
+Standardize PSI-family models: PSI (Parallel Snapshot Isolation) and its variants like WSI and PSI+Prefix need consistent definitions so that different systems and proofs interpret them the same way.
+Example: Two teams might implement PSI differently, causing confusion. Standardization ensures predictable behavior.
+
+Position TCC+ within the availability boundary: TCC+ is a transactional consistency model. Researchers want to formally show how strong it is while still being “arbitration-free,” meaning nodes can respond without a central coordinator.
+Example: A system that is always available but still guarantees transactional rules.
+
+Align axiomatic, state-based, and operational definitions: Different ways of describing consistency (mathematical rules, object states, and execution steps) should match to ensure systems and proofs are consistent.
+Example: In a banking system, “balance never goes negative” should hold mathematically, in the object states, and in the actual operations.
+
+Design CRDT+transaction schemes: Combine CRDTs (Conflict-free Replicated Data Types) with transactions while preserving invariants, so distributed updates remain correct.
+Example: An escrow account that multiple nodes update without violating rules like “do not overspend.”
+
+Create open benchmarks and cost models: Standard tests to measure anomalies, latency, and metadata overhead, particularly in geo-distributed or edge settings.
+Example: Comparing two systems—one faster but less strict, one slower but more consistent—to understand trade-offs.
+
+Unify scalable analysis tools: Develop a shared framework so different tools can guide developers to choose “just enough” consistency for their applications.
+Example: Eventual consistency may be enough for a social feed, while bank transfers require stricter guarantees.
