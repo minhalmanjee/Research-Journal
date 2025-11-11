@@ -33,11 +33,7 @@ much determined already based on time.
 
 Sequential consistency = “Each process’s story stays in order — but everyone can tell the story differently, as long as the final timeline makes sense.”
 
-
-
-
-
-
+![Sequential Diagram](https://raw.githubusercontent.com/minhalmanjee/Research-Journal/main/2025/November/Week-02/sequential.png)
 
 A Satisfies Linearizability, Sequential consistency, B satisfies neither as Read of  y =1 happens at 23 and Write of y =1 happens at 32. So read before write is incorrect.
 
@@ -46,6 +42,7 @@ Causal Consistency:
 1. Every process must see all writes that are causally related.
 2. Read order must be consistent with causal order.
 
+![Causal Diagram](https://raw.githubusercontent.com/minhalmanjee/Research-Journal/main/2025/November/Week-02/Causal.png)
 
 The two writes (W(x=10) and W(x=20)) are concurrent. There is no causal (“happens-before”) relationship between them. Process C is free to see them in the order W(20) then W(10),
 so its reads return 20 → 10. Process D is free to see them in the order W(10) then W(20),
